@@ -13,10 +13,12 @@ import {
 } from 'naive-ui'
 import { DownloadOutline } from '@vicons/ionicons5'
 import DateRangeSwitch from './DateRangeSwitch.vue'
+import { useIsMobile } from './useIsMobile'
 import { api, downloadBlob } from '../api/client'
-import { MEAL_LABELS, MEALS, RANGE_LABELS, addDays, rangeOf, todayISO } from '../utils/date'
+import { MEAL_LABELS, MEALS, addDays, rangeOf, todayISO } from '../utils/date'
 
 const message = useMessage()
+const isMobile = useIsMobile()
 
 const rangeKey = ref('week')
 /** 自定义区间（选择「自定义」时使用） */
@@ -205,10 +207,10 @@ onMounted(load)
       />
     </n-card>
 
-    <n-drawer v-model:show="detailVisible" :width="640" placement="right">
-      <n-drawer-content closable>
+    <n-drawer v-model:show="detailVisible" :width="isMobile ? '100%' : 640" placement="right">
+      <n-drawer-content closable :native-scrollbar="false" body-content-style="padding: 14px">
         <template #header>{{ detail.date }} 就餐名单</template>
-        <div class="toolbar" style="margin-bottom: 12px">
+        <div class="detail-toolbar">
           <n-button
             v-for="meal in MEALS"
             :key="meal"
@@ -219,27 +221,99 @@ onMounted(load)
           >
             {{ MEAL_LABELS[meal] }}
           </n-button>
-          <span class="spacer" />
           <span class="chip ok">共 {{ detail.total }} 人</span>
         </div>
 
-        <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap">
+        <div v-if="detail.departments.length" class="detail-depts">
           <span v-for="dept in detail.departments" :key="dept.name" class="chip">
             {{ dept.name }} · {{ dept.count }}
           </span>
         </div>
 
         <n-skeleton v-if="detailLoading" text :repeat="6" />
-        <n-data-table
-          v-else
-          :columns="detailColumns"
-          :data="detail.items"
-          :bordered="false"
-          size="small"
-          max-height="60vh"
-        />
-        <div v-if="!detailLoading && !detail.items.length" class="empty-box">这一餐还没有人预约</div>
+
+        <!-- 手机端：卡片列表，姓名/部门/忌口一屏看全 -->
+        <div v-else-if="isMobile" class="detail-cards">
+          <article v-for="row in detail.items" :key="row.phone" class="detail-card">
+            <div class="dc-head">
+              <strong>{{ row.name }}</strong>
+              <span class="muted tiny">{{ row.department || '—' }}</span>
+            </div>
+            <div class="dc-phone">{{ row.phone }}</div>
+            <div v-if="row.allergens || row.preferences" class="dc-tags">
+              <span v-if="row.allergens" class="chip bad">忌口：{{ row.allergens }}</span>
+              <span v-if="row.preferences" class="chip">{{ row.preferences }}</span>
+            </div>
+          </article>
+          <div v-if="!detail.items.length" class="empty-box">这一餐还没有人预约</div>
+        </div>
+
+        <template v-else>
+          <n-data-table
+            :columns="detailColumns"
+            :data="detail.items"
+            :bordered="false"
+            size="small"
+            max-height="60vh"
+          />
+          <div v-if="!detail.items.length" class="empty-box">这一餐还没有人预约</div>
+        </template>
       </n-drawer-content>
     </n-drawer>
   </div>
 </template>
+
+<style scoped>
+.detail-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.detail-depts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.detail-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-card {
+  border: 1px solid #eceef2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.dc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dc-head strong {
+  font-size: 14px;
+  color: #111827;
+}
+
+.dc-phone {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #9aa3af;
+}
+
+.dc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+</style>

@@ -294,6 +294,26 @@ async function checkPage([route, name, phone, expected, waitOverride]) {
         console.log(
           `     [drawer] open=${dom.window.document.querySelectorAll('.n-drawer').length} items=${dom.window.document.querySelectorAll('.n-drawer .n-menu-item').length}`,
         )
+        if (process.env.DEBUG_NAV === '1') {
+          const nodes = [...dom.window.document.querySelectorAll('.n-drawer .n-menu-item-content')]
+          nodes.forEach((node, index) => {
+            const label = (node.textContent || '').trim().slice(0, 8)
+            console.log(`     [item ${index}] ${label} :: ${node.className}`)
+          })
+        }
+      }
+      // 就餐预约：点第一行「查看明细」，检查移动端抽屉里的卡片列表
+      if (route === '/admin/reservations') {
+        const btn = [...dom.window.document.querySelectorAll('button')].find((node) =>
+          (node.textContent || '').includes('查看明细'),
+        )
+        if (btn) {
+          btn.click()
+          await new Promise((resolve) => setTimeout(resolve, 1200))
+          console.log(
+            `     [detail] drawer=${dom.window.document.querySelectorAll('.n-drawer').length} cards=${dom.window.document.querySelectorAll('.detail-card').length}`,
+          )
+        }
       }
     }
     const html = dom.window.document.querySelector('.n-card-header__main')

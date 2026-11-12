@@ -404,9 +404,21 @@ async function onUserAction(key) {
   font-size: 13.5px;
 }
 
-.menu :deep(.n-menu-item-content:hover) {
-  color: #111827;
-  background: #f4f5f7;
+/* 只给「真·选中」加底色：naive 打开菜单/抽屉时会聚焦第一项，
+   默认会给它一个 hover 灰底，看起来像被选中。这里压掉。
+   :hover 只在支持悬停的设备上启用，避免手机上点击后底色残留。 */
+.menu :deep(.n-menu-item-content:focus-within:not(.n-menu-item-content--selected)),
+.menu :deep(.n-menu-item-content:focus-within:not(.n-menu-item-content--selected)::before),
+.menu :deep(.n-menu-item-content:focus-visible:not(.n-menu-item-content--selected)) {
+  background-color: transparent !important;
+  outline: none;
+}
+
+@media (hover: hover) {
+  .menu :deep(.n-menu-item-content:hover) {
+    color: #111827;
+    background: #f4f5f7;
+  }
 }
 
 .menu :deep(.n-menu-item-content--selected) {
