@@ -201,6 +201,7 @@ onMounted(load)
         :single-line="false"
         size="small"
         :row-key="(row) => row.date"
+        :scroll-x="640"
       />
     </n-card>
 

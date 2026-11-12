@@ -438,6 +438,7 @@ onMounted(() => {
         :bordered="false"
         size="small"
         :row-key="(row) => row.id"
+        :scroll-x="900"
         :pagination="pagination"
       />
     </n-card>

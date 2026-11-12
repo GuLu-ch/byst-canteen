@@ -950,4 +950,84 @@ onMounted(() => {
   line-height: 1.9;
   color: #8b95a3;
 }
+
+/* ── 手机端：一周改成单列竖向排列，编辑弹窗两行式 ───────────── */
+@media (max-width: 900px) {
+  .board {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .day-card {
+    padding: 10px 11px 11px;
+    gap: 6px;
+  }
+
+  .day-head {
+    padding-bottom: 7px;
+  }
+
+  /* 每天的餐次横排三块，菜名换行显示，省一半高度 */
+  .day-card .meal-block {
+    padding: 8px 9px 9px;
+  }
+
+  .dish-row {
+    font-size: 12.5px;
+  }
+
+  .board-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .week-nav {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .week-label {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .week-label strong {
+    font-size: 13px;
+  }
+
+  .weekend-tip {
+    display: none;
+  }
+
+  /* 编辑弹窗：菜名独占一行，类型和删除按钮换到第二行 */
+  .editor-row {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #f1f3f6;
+  }
+
+  .editor-row .n-input {
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+
+  .editor-row .n-select {
+    flex: 0 0 120px;
+  }
+
+  .tag-manager {
+    gap: 5px;
+    padding: 8px;
+  }
+
+  .tag-input {
+    width: 118px;
+  }
+
+  .modal-footer .n-button {
+    flex: 1;
+  }
+}
 </style>

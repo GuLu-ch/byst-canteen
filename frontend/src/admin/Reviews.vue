@@ -721,10 +721,66 @@ onMounted(async () => {
 @media (max-width: 900px) {
   .day-layout {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
+  /* 日期列表改成横向滚动的「日期条」，不占竖向空间 */
   .day-list {
-    max-height: 240px;
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 6px;
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .day-list-head {
+    display: none;
+  }
+
+  .day-item {
+    flex: 0 0 auto;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 12px;
+    border: 1px solid #eceef2;
+    border-radius: 10px;
+    min-width: 74px;
+  }
+
+  .day-item.active {
+    border-color: #c7d7fb;
+    background: #eff4ff;
+  }
+
+  .di-score {
+    align-items: center;
+    font-size: 12px;
+  }
+
+  .day-panel {
+    padding: 12px;
+  }
+
+  .day-panel-head {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .meal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .meal-card {
+    padding: 11px;
+  }
+
+  /* 评价明细里长评论换行更自然 */
+  .comment-text {
+    font-size: 13px;
+    word-break: break-word;
   }
 }
 </style>

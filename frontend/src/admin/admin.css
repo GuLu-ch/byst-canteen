@@ -264,6 +264,106 @@
   background: #d8e0ec;
 }
 
+/* ─────────────────────────────────────────────
+   手机 / 窄屏（厨师常用手机看菜单、看评价）
+   ───────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .admin-page {
+    gap: 12px;
+  }
+
+  .page-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .page-head h2 {
+    font-size: 18px;
+  }
+
+  .page-head p {
+    margin-top: 4px;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .page-actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  /* 指标卡两列，避免每张卡占满一屏 */
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat {
+    padding: 12px 13px;
+  }
+
+  .stat-value {
+    margin-top: 6px;
+    font-size: 21px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .stat-foot {
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  /* 卡片内边距收紧 */
+  .n-card > .n-card__content {
+    padding: 12px;
+  }
+
+  .n-card > .n-card-header {
+    padding: 12px 12px 0;
+  }
+
+  .panel-title {
+    font-size: 14px;
+  }
+
+  /* 弹窗铺满屏宽，按钮更好点 */
+  .n-modal.n-card,
+  .n-modal {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    margin: 10px auto;
+  }
+
+  .n-card.preset-card {
+    width: calc(100vw - 20px) !important;
+  }
+
+  /* 表格：横向可滚动，避免列被压扁 */
+  .n-data-table .n-data-table-base-table {
+    overflow-x: auto;
+  }
+
+  /* 表单控件统一放大一点，方便手指点 */
+  .n-button {
+    min-height: 34px;
+  }
+
+  .n-base-selection {
+    min-height: 34px;
+  }
+}
+
+/* 表格容器在窄屏允许横向滚动（Naive 表格外层） */
+.admin-page .n-card .n-data-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 /* 深色模式（.dark-mode 挂在 shell 上，向下覆盖页面自定义块） */
 .dark-mode .page-head h2 {
   color: #e6edf5;

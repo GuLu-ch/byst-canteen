@@ -1,9 +1,10 @@
 <script setup>
 import { computed, h, onMounted, ref, watch } from 'vue'
-import { NButton, NCard, NDataTable, NSelect, NSkeleton, NTag, useMessage } from 'naive-ui'
+import { NButton, NCard, NDataTable, NPagination, NSelect, NSkeleton, NTag, useMessage } from 'naive-ui'
 import { useRoute } from 'vue-router'
 import ChartBox from './ChartBox.vue'
 import DateRangeSwitch from './DateRangeSwitch.vue'
+import { useIsMobile } from './useIsMobile'
 import { api } from '../api/client'
 import { notifyFeedbackHandled } from '../stores/adminBadges'
 import { rangeOf, todayISO } from '../utils/date'
@@ -22,6 +23,7 @@ const category = ref('')
 const handled = ref('')
 
 const route = useRoute()
+const isMobile = useIsMobile()
 
 const range = computed(() => customRange.value || rangeOf(rangeKey.value === 'custom' ? 'week' : rangeKey.value))
 const rangeText = computed(() => `${range.value.start} ~ ${range.value.end}`)
@@ -278,6 +280,12 @@ function clearFilters() {
   loadList()
 }
 
+/** 手机端卡片列表的翻页 */
+function onPageChange(value) {
+  page.value = value
+  loadList()
+}
+
 onMounted(() => {
   // 支持从导航小红点直接进入「全部待处理」列表
   if (route.query.handled === 'false') handled.value = 'false'
@@ -361,16 +369,55 @@ onMounted(() => {
 
       <n-skeleton v-if="loading" text :repeat="5" />
       <template v-else>
+        <!-- 手机端：卡片列表，比横向滚动的表格好读 -->
+        <div v-if="isMobile" class="fb-cards">
+          <article v-for="row in rows" :key="row.id" class="fb-card">
+            <div class="fb-card-top">
+              <span class="chip">{{ row.category_label }}</span>
+              <span class="chip" :class="row.handled ? 'ok' : 'warn'">
+                {{ row.handled ? '已处理' : '待处理' }}
+              </span>
+              <span class="muted tiny">{{ row.date }}</span>
+            </div>
+            <p class="fb-card-text">{{ row.content }}</p>
+            <div class="fb-card-foot">
+              <span class="muted tiny">{{ (row.created_at || '').replace('T', ' ').slice(0, 16) }}</span>
+              <n-button
+                v-if="!row.handled"
+                size="small"
+                type="primary"
+                secondary
+                @click="markHandled(row)"
+              >
+                标记已处理
+              </n-button>
+              <span v-else class="muted tiny">已归档</span>
+            </div>
+          </article>
+          <div v-if="!rows.length" class="empty-box">没有符合条件的反馈</div>
+          <n-pagination
+            v-if="total > pageSize"
+            :page="page"
+            :page-size="pageSize"
+            :item-count="total"
+            :page-slot="5"
+            class="fb-pager"
+            @update:page="onPageChange"
+          />
+        </div>
+
         <n-data-table
+          v-else
           :columns="columns"
           :data="rows"
           :bordered="false"
           size="small"
           :row-key="(row) => row.id"
           remote
+          :scroll-x="720"
           :pagination="pagination"
         />
-        <div v-if="!rows.length" class="empty-box">没有符合条件的反馈</div>
+        <div v-if="!isMobile && !rows.length" class="empty-box">没有符合条件的反馈</div>
       </template>
     </n-card>
   </div>
@@ -404,5 +451,48 @@ onMounted(() => {
   background: #c0392b;
   border-color: #c0392b;
   color: #fff;
+}
+
+/* ── 手机端反馈卡片 ─────────────────────── */
+.fb-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fb-card {
+  border: 1px solid #eceef2;
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: #fff;
+}
+
+.fb-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+
+.fb-card-text {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #2b3441;
+  word-break: break-word;
+}
+
+.fb-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fb-pager {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
 }
 </style>

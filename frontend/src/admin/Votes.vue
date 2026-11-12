@@ -199,6 +199,7 @@ onMounted(async () => {
             :bordered="false"
             size="small"
             :row-key="(row) => row.dish_name"
+            :scroll-x="520"
           />
           <div v-else class="empty-box">这个区间还没有人投票</div>
         </template>

@@ -20,6 +20,7 @@ import {
   CloseOutline,
   GridOutline,
   HeartOutline,
+  MenuOutline,
   PeopleOutline,
   PulseOutline,
   RefreshOutline,
@@ -29,13 +30,17 @@ import {
 } from '@vicons/ionicons5'
 
 import { dateZhCN, themeOverrides, zhCN } from './naive'
+import { useIsMobile } from './useIsMobile'
 import { adminLogout, isAdmin, roleLabel, store } from '../stores/app'
 import { pendingFeedback, refreshPendingFeedback } from '../stores/adminBadges'
 
 const route = useRoute()
 const router = useRouter()
 
+const isMobile = useIsMobile()
 const collapsed = ref(localStorage.getItem('byst_admin_collapsed') === '1')
+/** 手机端：导航收进左侧抽屉 */
+const navOpen = ref(false)
 const refreshKey = ref(0)
 
 watch(collapsed, (value) => localStorage.setItem('byst_admin_collapsed', value ? '1' : '0'))
@@ -98,7 +103,11 @@ onMounted(refreshPendingFeedback)
 // 每次切页刷新一下待处理数量（操作完反馈页也能及时更新）
 watch(
   () => route.path,
-  () => refreshPendingFeedback(),
+  () => {
+    refreshPendingFeedback()
+    // 手机端跳转后自动收起抽屉
+    navOpen.value = false
+  },
 )
 
 const TITLES = {
@@ -153,8 +162,9 @@ async function onUserAction(key) {
   <n-config-provider :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN" class="admin-app">
     <n-dialog-provider>
       <n-message-provider>
-        <n-layout has-sider class="shell">
+        <n-layout :has-sider="!isMobile" class="shell">
           <n-layout-sider
+            v-if="!isMobile"
             collapse-mode="width"
             :collapsed="collapsed"
             :collapsed-width="64"
@@ -202,12 +212,48 @@ async function onUserAction(key) {
             />
           </n-layout-sider>
 
+          <!-- 手机端：导航收进左侧抽屉，厨师/管理员单手也能操作 -->
+          <n-drawer v-model:show="navOpen" :width="252" placement="left" class="nav-drawer">
+            <n-drawer-content :native-scrollbar="false" body-content-style="padding: 0;">
+              <div class="drawer-head">
+                <span class="logo-mark">
+                  <svg viewBox="0 0 48 48" width="18" height="18" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 22h32c0 9.4-7.2 16-16 16S8 31.4 8 22Z" />
+                    <path d="M18 15c0-2.5 2-3.5 2-5.5M26 15c0-2.5 2-3.5 2-5.5" />
+                  </svg>
+                </span>
+                <div class="drawer-title">
+                  <strong>博涯小食堂</strong>
+                  <i>{{ roleLabel(store.admin?.role) }}端</i>
+                </div>
+              </div>
+              <n-menu
+                :value="route.path"
+                :options="menuOptions"
+                :indent="16"
+                class="menu drawer-menu"
+                @update:value="navOpen = false"
+              />
+            </n-drawer-content>
+          </n-drawer>
+
           <n-layout class="main">
-            <header class="topbar">
-              <div class="crumb">
-                <span>管理后台</span>
-                <i>/</i>
-                <strong>{{ pageTitle }}</strong>
+            <header class="topbar" :class="{ mobile: isMobile }">
+              <div class="topbar-left">
+                <button
+                  v-if="isMobile"
+                  class="icon-btn nav-toggle"
+                  type="button"
+                  aria-label="打开导航"
+                  @click="navOpen = true"
+                >
+                  <n-icon :size="19"><MenuOutline /></n-icon>
+                </button>
+                <div class="crumb" :class="{ compact: isMobile }">
+                  <span v-if="!isMobile">管理后台</span>
+                  <i v-if="!isMobile">/</i>
+                  <strong>{{ pageTitle }}</strong>
+                </div>
               </div>
               <div class="topbar-right">
                 <button class="icon-btn" title="刷新当前页" @click="refreshKey += 1">
@@ -216,7 +262,7 @@ async function onUserAction(key) {
                 <n-dropdown :options="userOptions" trigger="click" @select="onUserAction">
                   <button class="user" type="button">
                     <span class="avatar">{{ initial(store.admin?.name) }}</span>
-                    <span class="user-meta">
+                    <span v-if="!isMobile" class="user-meta">
                       <strong>{{ store.admin?.name || '管理员' }}</strong>
                       <i>{{ roleLabel(store.admin?.role) }}</i>
                     </span>
@@ -225,7 +271,7 @@ async function onUserAction(key) {
               </div>
             </header>
 
-            <div v-if="tabs.length > 1" class="tabs">
+            <div v-if="tabs.length > 1 && !isMobile" class="tabs">
               <button
                 v-for="tab in tabs"
                 :key="tab.path"
@@ -437,12 +483,87 @@ async function onUserAction(key) {
   z-index: 20;
 }
 
+.topbar.mobile {
+  height: 50px;
+  padding: 0 10px 0 6px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nav-toggle {
+  width: 36px;
+  height: 36px;
+  color: #3d4652;
+}
+
+.crumb.compact {
+  font-size: 14px;
+}
+
+.crumb.compact strong {
+  font-size: 14.5px;
+}
+
+/* ── 手机端抽屉导航 ────────────────────── */
+.drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid #f1f3f6;
+}
+
+.drawer-title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.drawer-title strong {
+  font-size: 14.5px;
+  color: #111827;
+  letter-spacing: 0.4px;
+}
+
+.drawer-title i {
+  font-style: normal;
+  font-size: 11px;
+  color: #9aa3af;
+}
+
+.drawer-menu {
+  padding: 8px 6px 16px;
+  flex: none;
+}
+
+.drawer-menu :deep(.n-menu-item-content) {
+  height: 46px;
+  border-radius: 9px;
+}
+
+.drawer-menu :deep(.n-menu-item-content .n-menu-item-content-header) {
+  font-size: 14.5px;
+}
+
+.drawer-menu :deep(.n-menu-item) {
+  margin-top: 2px;
+  height: 46px;
+}
+
 .crumb {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 13px;
   color: #97a0ad;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .crumb i {
@@ -580,5 +701,12 @@ async function onUserAction(key) {
 .content {
   padding: 18px 20px 28px;
   background: #f7f8fa;
+}
+
+/* 手机端：内容区更紧凑，底部留出安全区 */
+@media (max-width: 900px) {
+  .content {
+    padding: 12px 12px calc(20px + env(safe-area-inset-bottom));
+  }
 }
 </style>

@@ -143,6 +143,24 @@ function installDom(url, tokenValue, errors, scope = 'app') {
         return false
       },
     }))
+
+  // MOBILE_ADMIN=1：把管理端伪装成窄屏，用来验证手机端布局（抽屉导航 / 卡片列表）
+  if (process.env.MOBILE_ADMIN === '1' && scope === 'admin') {
+    const mobileMql = (query) => ({
+      matches: /max-width/.test(String(query)),
+      media: String(query),
+      onchange: null,
+      addListener() {},
+      removeListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+      dispatchEvent() {
+        return false
+      },
+    })
+    window.matchMedia = mobileMql
+    globalThis.matchMedia = mobileMql
+  }
   window.scrollTo = () => {}
   if (!window.requestIdleCallback) window.requestIdleCallback = (cb) => window.setTimeout(cb, 1)
   window.matchMedia = window.matchMedia || globalThis.matchMedia
@@ -262,8 +280,22 @@ async function checkPage([route, name, phone, expected, waitOverride]) {
   if (!appHtml || appHtml === '<!---->') console.log(`     #app 未渲染: ${appHtml || '(空)'}`)
   if (process.env.DEBUG_TEXT) {
     console.log(
-      `     [nav] items=${dom.window.document.querySelectorAll('.n-menu-item').length} dots=${dom.window.document.querySelectorAll('.nav-dot, .nav-ico-dot').length}`,
+      `     [nav] items=${dom.window.document.querySelectorAll('.n-menu-item').length} dots=${dom.window.document.querySelectorAll('.nav-dot, .nav-ico-dot').length} toggle=${dom.window.document.querySelectorAll('.nav-toggle').length}`,
     )
+    console.log(
+      `     [view] fbCards=${dom.window.document.querySelectorAll('.fb-card').length} dayItems=${dom.window.document.querySelectorAll('.day-item').length} dayCards=${dom.window.document.querySelectorAll('.day-card').length} tables=${dom.window.document.querySelectorAll('.n-data-table').length}`,
+    )
+    // 手机端：点一下汉堡按钮，确认抽屉里的导航能正常渲染
+    if (process.env.MOBILE_ADMIN === '1') {
+      const toggle = dom.window.document.querySelector('.nav-toggle')
+      if (toggle) {
+        toggle.click()
+        await new Promise((resolve) => setTimeout(resolve, 900))
+        console.log(
+          `     [drawer] open=${dom.window.document.querySelectorAll('.n-drawer').length} items=${dom.window.document.querySelectorAll('.n-drawer .n-menu-item').length}`,
+        )
+      }
+    }
     const html = dom.window.document.querySelector('.n-card-header__main')
     console.log(
       `     [len ${text.length}] cards=${dom.window.document.querySelectorAll('.n-card').length} headers=${dom.window.document.querySelectorAll('.n-card-header__main').length}`,
