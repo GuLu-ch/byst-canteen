@@ -1,0 +1,509 @@
+:root {
+  /* 主题色：rgb(5, 175, 240) */
+  --brand: #05aff0;
+  --brand-deep: #0090c6;
+  --brand-dark: #0079a8;
+  --brand-soft: #e7f7fe;
+  --brand-softer: #f3fbff;
+  --brand-ink: #06435e;
+  --grad-brand: linear-gradient(135deg, #0284c7 0%, #05aff0 48%, #2fc6f6 100%);
+  --grad-brand-deep: linear-gradient(135deg, #038fc7 0%, #05aff0 60%, #3ec9f2 100%);
+  /* hero 深色渐变：白字有足够对比度 */
+  --grad-hero: linear-gradient(135deg, #0369a1 0%, #0284c7 45%, #05aff0 100%);
+  --hero-text: #ffffff;
+  --hero-text-2: rgba(255, 255, 255, 0.86);
+  --hero-veil: rgba(255, 255, 255, 0.14);
+  --hero-veil-line: rgba(255, 255, 255, 0.32);
+
+  --green: #17b26a;
+  --amber: #f79009;
+  --red: #f04438;
+  --violet: #7a5af8;
+  --ok: #0d7a49;
+  --ok-soft: #e7f8f0;
+  --danger: #b42318;
+  --danger-soft: #fef3f2;
+
+  --text: #101c2c;
+  --text-2: #55637a;
+  --text-3: #93a1b3;
+  --bg: #eef4f9;
+  --card: #ffffff;
+  --card-2: #f7fafc;
+  --line: #e9eff5;
+  --veil: rgba(255, 255, 255, 0.94);
+  --scroll-hint: rgba(16, 43, 66, 0.08);
+
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 4px 12px rgba(16, 43, 66, 0.05);
+  --shadow: 0 10px 28px rgba(16, 43, 66, 0.08);
+  --shadow-brand: 0 12px 26px rgba(3, 105, 161, 0.3);
+
+  --van-primary-color: var(--brand);
+  --van-success-color: var(--green);
+  --van-danger-color: var(--red);
+  --van-warning-color: var(--amber);
+  --van-text-color: var(--text);
+  --van-text-color-2: var(--text-2);
+  --van-text-color-3: var(--text-3);
+  --van-background: var(--bg);
+  --van-background-2: var(--card);
+  --van-border-color: var(--line);
+  --van-radius-lg: var(--radius);
+  --van-radius-md: var(--radius-sm);
+  --van-popup-background: var(--card);
+
+  /* Element Plus（管理端）主色，跟随同一套蓝 */
+  --el-color-primary: #05aff0;
+  --el-color-primary-light-3: #4ac6f5;
+  --el-color-primary-light-5: #82d8f8;
+  --el-color-primary-light-7: #b8e8fb;
+  --el-color-primary-light-8: #d2f0fd;
+  --el-color-primary-light-9: #e7f7fe;
+  --el-color-primary-dark-2: #0090c6;
+}
+
+/* ---------- 深色主题 ---------- */
+html[data-theme='dark'] {
+  --brand-soft: rgba(5, 175, 240, 0.16);
+  --brand-softer: rgba(5, 175, 240, 0.1);
+  --brand-ink: #9fdffb;
+  --grad-hero: linear-gradient(135deg, #0b3a54 0%, #075a80 55%, #0284c7 100%);
+  --hero-text: #f2faff;
+  --hero-text-2: rgba(226, 246, 255, 0.82);
+  --hero-veil: rgba(255, 255, 255, 0.09);
+  --hero-veil-line: rgba(255, 255, 255, 0.18);
+
+  --green: #17b26a;
+  --amber: #f79009;
+  --red: #f04438;
+  --violet: #7a5af8;
+  --ok: #4ade8f;
+  --ok-soft: rgba(23, 178, 106, 0.16);
+  --danger: #f97066;
+  --danger-soft: rgba(240, 68, 56, 0.16);
+
+  --text: #e6edf5;
+  --text-2: #9fb0c2;
+  --text-3: #6c7d90;
+  --bg: #0d1620;
+  --card: #16222f;
+  --card-2: #1b2937;
+  --line: #263748;
+  --veil: rgba(16, 26, 36, 0.96);
+  --scroll-hint: rgba(255, 255, 255, 0.09);
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+  --shadow-brand: 0 12px 26px rgba(2, 132, 199, 0.34);
+
+  --van-background: var(--bg);
+  --van-background-2: var(--card);
+  --van-text-color: var(--text);
+  --van-text-color-2: var(--text-2);
+  --van-text-color-3: var(--text-3);
+  --van-border-color: var(--line);
+  --van-popup-background: var(--card);
+  --van-cell-background: var(--card);
+  --van-field-label-color: var(--text-2);
+  --van-checkbox-label-color: var(--text);
+}
+
+html[data-theme='dark'] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* 深色下的通用组件适配 */
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .ghost-btn {
+  background: var(--card);
+}
+
+html[data-theme='dark'] .pill.grey {
+  background: var(--card-2);
+  color: var(--text-2);
+}
+
+html[data-theme='dark'] .pill.green {
+  background: rgba(23, 178, 106, 0.16);
+  color: #4ade8f;
+}
+
+html[data-theme='dark'] .pill.amber {
+  background: rgba(247, 144, 9, 0.16);
+  color: #ffb35c;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+img,
+svg {
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ---------- 通用容器 ---------- */
+.page {
+  padding: 0 16px calc(110px + env(safe-area-inset-bottom));
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.section {
+  margin-top: 18px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 2px 10px;
+}
+
+.section-head h3 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+
+/* 头部小链接按钮：浅蓝胶囊底、无边框，不再悬空 */
+.section-head .link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--brand-dark);
+  font-weight: 600;
+  background: var(--brand-soft);
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.section-head .link:active {
+  transform: scale(0.96);
+}
+
+.muted {
+  color: var(--text-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
+html[data-theme='dark'] .pill {
+  color: #7cd8fb;
+}
+
+.pill.green {
+  background: #e7f8f0;
+  color: #0d7a49;
+}
+
+.pill.grey {
+  background: #f0f3f7;
+  color: var(--text-3);
+}
+
+.pill.amber {
+  background: #fef4e6;
+  color: #b25c04;
+}
+
+/* ---------- 页面进入动画（只做 enter，不依赖 leave 结束） ---------- */
+/* 只动 opacity：transform 会成为 fixed 子元素的包含块，
+   导致底部悬浮条/弹层相对内容定位而被 tabbar 遮挡 */
+/* 只动 opacity：transform 会让 page 成为 fixed 子元素的包含块，
+   导致底部悬浮保存条与弹层相对内容定位、被 tabbar 遮挡 */
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-anim {
+  animation: page-in 0.3s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+}
+
+@keyframes slide-from-right {
+  from {
+    opacity: 0.4;
+    transform: translateX(44px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes slide-from-left {
+  from {
+    opacity: 0.4;
+    transform: translateX(-44px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.slide-right {
+  animation: slide-from-right 0.3s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+}
+
+.slide-left {
+  animation: slide-from-left 0.3s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.24s ease-out both;
+}
+
+/* 横向滚动的 chip 行：隐藏滚动条 */
+.hscroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 底部固定操作条：悬浮在 tabbar 上方 8px，z-index 高于 tabbar，始终可见不重叠 */
+.action-bar {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(13, 42, 63, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  box-shadow: var(--shadow-brand);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.primary-btn:active {
+  transform: scale(0.97);
+}
+
+.primary-btn:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.ghost-btn:active {
+  background: var(--brand-softer);
+  border-color: var(--brand);
+  color: var(--brand-dark);
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 26px 0;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+/* ---------- 底部弹层通用骨架（全站 popup 统一治理） ---------- */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: 78vh;
+  padding: 0 16px calc(78px + env(safe-area-inset-bottom));
+}
+
+.sheet-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 -16px;
+  padding: 16px 16px 10px;
+  background: var(--card);
+  border-radius: 18px 18px 0 0;
+}
+
+.sheet-head h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sheet-head .close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 10px;
+  background: var(--card-2);
+  color: var(--text-2);
+}
+
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 8px;
+}
+
+/* 弹层右缘滚动提示条（可选装饰） */
+.sheet-scroll-hint {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* 深色模式下的 Vant 表单/弹窗底色 */
+html[data-theme='dark'] .van-field {
+  background: transparent;
+}
+
+html[data-theme='dark'] .van-field .van-field__control {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .van-field .van-field__control::placeholder {
+  color: var(--text-3);
+}

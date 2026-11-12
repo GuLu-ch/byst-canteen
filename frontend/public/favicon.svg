@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bowl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4ac6f5" />
+      <stop offset="100%" stop-color="#05aff0" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#e7f7fe" />
+  <path d="M10 30h44c0 12-9.8 21-22 21S10 42 10 30Z" fill="url(#bowl)" />
+  <path d="M10 30h44" stroke="#038fc7" stroke-width="3" stroke-linecap="round" />
+  <path d="M22 22c0-4 3-4 3-8M32 22c0-4 3-4 3-8M42 22c0-4 3-4 3-8" stroke="#82d8f8" stroke-width="3" stroke-linecap="round" fill="none" />
+  <ellipse cx="32" cy="47" rx="9" ry="2.4" fill="#ffffff" opacity=".45" />
+</svg>

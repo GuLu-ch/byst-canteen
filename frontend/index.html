@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#05aff0" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <title>博涯小食堂</title>
+    <script>
+      // 在首帧渲染前恢复主题，避免深色用户看到白闪
+      (function () {
+        try {
+          var saved = localStorage.getItem('byst_theme')
+          var dark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.dataset.theme = 'dark'
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Vue 挂载后会被整块替换：首屏骨架，避免白屏 -->
+      <div class="boot-splash">
+        <div class="boot-bowl">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3.4 11h17.2a8.6 8.6 0 0 1-17.2 0Z" />
+            <path d="M3.2 20.6h17.6" />
+            <path d="M12 7.4c0-1.4 1.4-1.8 1.4-3.2" />
+          </svg>
+        </div>
+        <p class="boot-text">博涯小食堂</p>
+      </div>
+    </div>
+    <style>
+      .boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: linear-gradient(160deg, #eefaff, #f7f9fc 55%, #f1f4f8);
+        font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      }
+      /* 深色主题下的骨架底色（html data-theme 由上面的内联脚本设置） */
+      html[data-theme='dark'] .boot-splash {
+        background: linear-gradient(160deg, #0d1620, #101c28 55%, #0d1620);
+      }
+      .boot-bowl {
+        width: 60px;
+        height: 60px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px;
+        background: linear-gradient(140deg, #4ac6f5, #05aff0);
+        box-shadow: 0 14px 30px rgba(5, 175, 240, 0.3);
+        animation: boot-pop 1.4s ease-in-out infinite;
+      }
+      .boot-text {
+        margin: 0;
+        font-size: 13px;
+        letter-spacing: 1px;
+        color: #6b7c8c;
+      }
+      html[data-theme='dark'] .boot-text {
+        color: #9fb0c2;
+      }
+      @keyframes boot-pop {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-6px) scale(1.04);
+        }
+      }
+    </style>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

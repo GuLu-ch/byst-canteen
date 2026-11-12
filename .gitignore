@@ -1,0 +1,9 @@
+.tmp/
+backend/.deps/
+backend/data/*.db
+backend/app/__pycache__/
+backend/app/routers/__pycache__/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-test/
+*.log

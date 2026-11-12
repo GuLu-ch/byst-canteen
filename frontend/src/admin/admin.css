@@ -1,0 +1,357 @@
+/* 管理端通用样式：与 Naive UI 卡片/表格配合，保持统一的留白与层次 */
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #16202e;
+  letter-spacing: 0.2px;
+}
+
+.page-head p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #8a97ab;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 指标卡 */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.stat {
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid #eef1f6;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  overflow: hidden;
+}
+
+.stat::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(31, 111, 235, 0.1), transparent 70%);
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #7d8ba1;
+}
+
+.stat-value {
+  margin-top: 10px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #16202e;
+  line-height: 1.1;
+}
+
+.stat-value small {
+  margin-left: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #93a1b5;
+}
+
+.stat-foot {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #93a1b5;
+}
+
+/* 卡片头 */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d2739;
+}
+
+.panel-title i {
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: #1f6feb;
+}
+
+.panel-sub {
+  font-size: 12px;
+  color: #93a1b5;
+  font-weight: 400;
+}
+
+/* 工具条 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+/* 行内信息 */
+.muted {
+  color: #93a1b5;
+}
+
+.tiny {
+  font-size: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #f2f6fd;
+  color: #4a6b8f;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.chip.warn {
+  background: #fff5e8;
+  color: #b96a09;
+}
+
+.chip.ok {
+  background: #e9f8ef;
+  color: #0d7a49;
+}
+
+.chip.bad {
+  background: #feecec;
+  color: #c02c2c;
+}
+
+/* 排行榜 */
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eef1f6;
+}
+
+.rank-row:last-child {
+  border-bottom: none;
+}
+
+.rank-no {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: #f2f6fd;
+  color: #5b6a80;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rank-no.top {
+  background: linear-gradient(135deg, #1f6feb, #4aa3ff);
+  color: #fff;
+}
+
+.rank-name {
+  flex: 1;
+  font-size: 13.5px;
+  color: #1d2739;
+}
+
+.rank-bar {
+  width: 160px;
+}
+
+.rank-value {
+  width: 64px;
+  text-align: right;
+  font-size: 12.5px;
+  color: #7d8ba1;
+}
+
+/* 表格里的两行单元格 */
+.cell-strong {
+  font-weight: 600;
+  color: #1d2739;
+}
+
+.cell-sub {
+  font-size: 12px;
+  color: #93a1b5;
+}
+
+/* 空状态 */
+.empty-box {
+  padding: 28px 0;
+  text-align: center;
+  color: #98a5b8;
+  font-size: 13px;
+}
+
+/* 上传区 */
+.upload-box {
+  border: 1px dashed #cdd8e8;
+  border-radius: 12px;
+  padding: 18px;
+  background: #fafcff;
+}
+
+.upload-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8a97ab;
+  line-height: 1.7;
+}
+
+/* 滚动条 */
+.admin-page ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-page ::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: #d8e0ec;
+}
+
+/* 深色模式（.dark-mode 挂在 shell 上，向下覆盖页面自定义块） */
+.dark-mode .page-head h2 {
+  color: #e6edf5;
+}
+
+.dark-mode .page-head p {
+  color: #8697ab;
+}
+
+.dark-mode .stat {
+  background: #17202c;
+  border-color: #232f3e;
+}
+
+.dark-mode .stat-value {
+  color: #e6edf5;
+}
+
+.dark-mode .stat-label,
+.dark-mode .stat-foot {
+  color: #8697ab;
+}
+
+.dark-mode .panel-title {
+  color: #e6edf5;
+}
+
+.dark-mode .chip {
+  background: #1d2836;
+  color: #9fb0c4;
+}
+
+.dark-mode .chip.warn {
+  background: #3a2a14;
+  color: #e5b169;
+}
+
+.dark-mode .chip.ok {
+  background: #143326;
+  color: #59d19b;
+}
+
+.dark-mode .chip.bad {
+  background: #3a1d1d;
+  color: #f08a8a;
+}
+
+.dark-mode .rank-row,
+.dark-mode .feedback-row,
+.dark-mode .recent-item,
+.dark-mode .reason-group,
+.dark-mode .switch-row,
+.dark-mode .day-head {
+  border-bottom-color: #232f3e;
+}
+
+.dark-mode .rank-name,
+.dark-mode .feedback-text,
+.dark-mode .recent-text,
+.dark-mode .cell-strong,
+.dark-mode .meal-title,
+.dark-mode .reason-title {
+  color: #dbe5f0;
+}
+
+.dark-mode .meal-box,
+.dark-mode .meal-card,
+.dark-mode .day-col {
+  background: #17202c;
+  border-color: #232f3e;
+}
+
+.dark-mode .meal-card:hover {
+  background: #1c2937;
+  border-color: #2f7fd6;
+}
+
+.dark-mode .upload-box {
+  background: #131b25;
+  border-color: #2a3748;
+}
+
+.dark-mode .sticky-actions {
+  background: rgba(23, 32, 44, 0.92);
+  border-color: #232f3e;
+}
+
+.dark-mode .empty-box,
+.dark-mode .muted {
+  color: #7c8da1;
+}
