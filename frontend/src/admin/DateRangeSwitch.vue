@@ -1,11 +1,11 @@
 <script setup>
 // 管理端统一的日期区间切换：今日 / 本周 / 最近30天 + 自定义日期范围。
-// 自定义区间用 NDatePicker（popover 模式）实现：
-//   组件本身渲染成一个透明的输入触发器（原生输入视觉上隐藏、点击区域铺满），
-//   上面覆盖「自定义」按钮 —— 点按钮即打开日历面板，选择后回调
-//   change({ key:'custom', start, end })，面板自动关闭。
+//
+// 自定义区间用「按钮 + NPopover」实现：面板里是两个普通日期选择器（开始 / 结束），
+// 选完点「应用」才生效。这样不依赖透明遮挡、也不受输入法/移动端点击影响，
+// 桌面和手机都能正常操作。
 import { computed, ref, watch } from 'vue'
-import { NDatePicker } from 'naive-ui'
+import { NButton, NDatePicker, NPopover } from 'naive-ui'
 
 import { RANGE_KEYS, RANGE_LABELS, isoFrom, parseISO, rangeOf } from '../utils/date'
 
@@ -20,42 +20,13 @@ const emit = defineEmits(['update:modelValue', 'change'])
 
 /** 当前生效区间（可能是快捷键，也可能是自定义） */
 const custom = ref(null)
-const pickerValue = ref(null)
-const pickerVisible = ref(false)
+const open = ref(false)
+const startTs = ref(null)
+const endTs = ref(null)
+const tip = ref('')
 
 const keys = computed(() => props.options)
 const active = computed(() => (custom.value ? 'custom' : props.modelValue))
-
-function emitRange(key, span) {
-  emit('update:modelValue', key)
-  emit('change', { key, ...span })
-}
-
-function pick(key) {
-  if (custom.value || key !== props.modelValue) {
-    custom.value = null
-    pickerValue.value = null
-    emitRange(key, rangeOf(key))
-    return
-  }
-  // 重复点同一个快捷键也刷新一次
-  emitRange(key, rangeOf(key))
-}
-
-function openPicker() {
-  // 面板打开时预填当前区间，方便微调
-  const span = custom.value || rangeOf(props.modelValue === 'custom' ? 'week' : props.modelValue)
-  pickerValue.value = [parseISO(span.start).getTime(), parseISO(span.end).getTime()]
-}
-
-function pickerChanged(value) {
-  if (!value || value.length !== 2) return
-  // daterange 无确认按钮（actions=null）：点完第二下即提交
-  const start = isoFrom(value[0])
-  const end = isoFrom(value[1])
-  custom.value = { start, end }
-  emitRange('custom', { start, end })
-}
 
 const display = computed(() => {
   if (custom.value) return `${custom.value.start} ~ ${custom.value.end}`
@@ -63,13 +34,57 @@ const display = computed(() => {
   return `${span.start} ~ ${span.end}`
 })
 
+function emitRange(key, span) {
+  emit('update:modelValue', key)
+  emit('change', { key, ...span })
+}
+
+function pick(key) {
+  open.value = false
+  if (custom.value || key !== props.modelValue) {
+    custom.value = null
+    emitRange(key, rangeOf(key))
+    return
+  }
+  // 重复点同一个快捷键也刷新一次
+  emitRange(key, rangeOf(key))
+}
+
+/** 打开自定义面板：把当前区间填进去，方便微调 */
+function toggleCustom() {
+  if (!open.value) {
+    const span = custom.value || rangeOf(props.modelValue === 'custom' ? 'week' : props.modelValue)
+    startTs.value = parseISO(span.start).getTime()
+    endTs.value = parseISO(span.end).getTime()
+    tip.value = ''
+  }
+  open.value = !open.value
+}
+
+function applyCustom() {
+  if (!startTs.value || !endTs.value) {
+    tip.value = '请把开始和结束日期都选上'
+    return
+  }
+  let start = isoFrom(startTs.value)
+  let end = isoFrom(endTs.value)
+  // 选反了就自动纠正，不让用户卡住
+  if (start > end) {
+    ;[start, end] = [end, start]
+  }
+  custom.value = { start, end }
+  tip.value = ''
+  open.value = false
+  emitRange('custom', { start, end })
+}
+
 watch(
   () => props.modelValue,
   (key) => {
     // 父组件把 modelValue 重置为快捷键时清掉自定义态
     if (key !== 'custom' && custom.value) {
       custom.value = null
-      pickerValue.value = null
+      open.value = false
     }
   },
 )
@@ -88,29 +103,51 @@ watch(
       {{ RANGE_LABELS[key] }}
     </button>
 
-    <!--
-      自定义区间：NDatePicker（popover 模式）透明地铺在「自定义」按钮下面，
-      原生输入隐藏、点击落在日历触发器上；面板打开时预填当前区间。
-    -->
-    <div class="custom-wrap">
-      <button type="button" class="range-btn custom-btn" :class="{ active: active === 'custom' }" :title="display" tabindex="-1">
-        <span class="custom-text">{{ active === 'custom' ? display : '自定义' }}</span>
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-          <rect x="2.5" y="3.5" width="11" height="10" rx="2" />
-          <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
-        </svg>
-      </button>
-      <n-date-picker
-        :value="pickerValue"
-        type="daterange"
-        size="small"
-        :actions="null"
-        :clearable="false"
-        class="picker-ghost"
-        @update:show="(show) => (show ? openPicker() : null)"
-        @update:value="pickerChanged"
-      />
-    </div>
+    <!-- 自定义区间：manual 触发，避免面板内的日期选择器一打开就被判成「点击外部」 -->
+    <n-popover
+      :show="open"
+      trigger="manual"
+      placement="bottom-end"
+      :width="276"
+      :show-arrow="false"
+      class="range-popover"
+    >
+      <template #trigger>
+        <button
+          type="button"
+          class="range-btn custom-btn"
+          :class="{ active: active === 'custom' }"
+          :title="display"
+          @click="toggleCustom"
+        >
+          <span class="custom-text">{{ active === 'custom' ? display : '自定义' }}</span>
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <rect x="2.5" y="3.5" width="11" height="10" rx="2" />
+            <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
+          </svg>
+        </button>
+      </template>
+
+      <div class="custom-panel" @click.stop>
+        <p class="cp-title">自定义日期区间</p>
+
+        <label class="cp-row">
+          <span>开始</span>
+          <n-date-picker v-model:value="startTs" type="date" size="small" class="cp-input" clearable />
+        </label>
+        <label class="cp-row">
+          <span>结束</span>
+          <n-date-picker v-model:value="endTs" type="date" size="small" class="cp-input" clearable />
+        </label>
+
+        <p v-if="tip" class="cp-tip">{{ tip }}</p>
+
+        <div class="cp-actions">
+          <n-button size="tiny" @click="open = false">取消</n-button>
+          <n-button size="tiny" type="primary" @click="applyCustom">应用</n-button>
+        </div>
+      </div>
+    </n-popover>
   </div>
 </template>
 
@@ -153,13 +190,6 @@ watch(
   font-size: 12px;
 }
 
-/* 自定义按钮 + 透明日期选择器叠放：按钮负责显示，选择器负责接收点击 */
-.custom-wrap {
-  position: relative;
-  display: inline-flex;
-  margin-left: 2px;
-}
-
 .custom-btn {
   display: inline-flex;
   align-items: center;
@@ -168,29 +198,55 @@ watch(
   justify-content: center;
 }
 
-.picker-ghost {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.picker-ghost :deep(.n-input) {
-  height: 100%;
-  min-height: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  --n-padding-single: 0;
-  --n-padding-start: 0;
-  --n-padding-end: 0;
-}
-
 .custom-text {
   max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 自定义面板 */
+.custom-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cp-title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #6b7280;
+}
+
+.cp-row > span {
+  flex: none;
+  width: 28px;
+}
+
+.cp-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-tip {
+  margin: 0;
+  font-size: 12px;
+  color: #c0392b;
+}
+
+.cp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
 }
 </style>

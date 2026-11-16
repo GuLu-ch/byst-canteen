@@ -316,6 +316,32 @@ async function checkPage([route, name, phone, expected, waitOverride]) {
         }
       }
     }
+    // 任意页面：点「自定义」按钮，确认日期区间面板能弹出（含两个日期选择器）
+    {
+      const btn = [...dom.window.document.querySelectorAll('button')].find((node) =>
+        (node.textContent || '').trim().startsWith('自定义'),
+      )
+      if (btn) {
+        btn.click()
+        await new Promise((resolve) => setTimeout(resolve, 600))
+        const panel = dom.window.document.querySelector('.custom-panel')
+        const applyBtn = [...dom.window.document.querySelectorAll('.custom-panel button')].find((node) =>
+          (node.textContent || '').includes('应用'),
+        )
+        console.log(
+          `     [range] panel=${panel ? 1 : 0} dates=${dom.window.document.querySelectorAll('.custom-panel .n-date-picker').length} apply=${applyBtn ? 1 : 0}`,
+        )
+        // 面板默认预填当前区间，直接点「应用」应当切成自定义区间并回写按钮文案
+        if (applyBtn) {
+          applyBtn.click()
+          await new Promise((resolve) => setTimeout(resolve, 900))
+          const customBtn = [...dom.window.document.querySelectorAll('button')].find((node) =>
+            /^\d{4}-\d{2}-\d{2}/.test((node.textContent || '').trim()),
+          )
+          console.log(`     [range] applied="${(customBtn?.textContent || '').trim()}"`)
+        }
+      }
+    }
     const html = dom.window.document.querySelector('.n-card-header__main')
     console.log(
       `     [len ${text.length}] cards=${dom.window.document.querySelectorAll('.n-card').length} headers=${dom.window.document.querySelectorAll('.n-card-header__main').length}`,
