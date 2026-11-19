@@ -344,14 +344,14 @@ onMounted(() => {
             <i />反馈列表
             <span class="panel-sub">共 {{ total }} 条 · 全部日期</span>
             <button
-              v-if="stats?.pending_all"
+              v-if="stats?.pending_all || handled === 'false'"
               type="button"
               class="pending-pill"
               :class="{ active: handled === 'false' }"
-              :title="handled === 'false' ? '取消「只看待处理」' : '只看待处理'"
+              :title="handled === 'false' ? '取消「只看待处理」，回到全部状态' : '只看待处理'"
               @click="filterPending"
             >
-              待处理 {{ stats.pending_all }} 条
+              待处理 {{ stats?.pending_all ?? 0 }} 条
             </button>
           </div>
           <div class="toolbar">

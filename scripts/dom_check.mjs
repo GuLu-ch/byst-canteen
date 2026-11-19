@@ -354,6 +354,19 @@ async function checkPage([route, name, phone, expected, waitOverride]) {
       }
       const pill = dom.window.document.querySelector('.pending-pill')
       console.log(`     [feedback] 待处理胶囊在列表标题里=${pill ? 1 : 0} 文案="${(pill?.textContent || '').trim()}"`)
+      if (pill) {
+        const statusText = () =>
+          [...dom.window.document.querySelectorAll('.n-base-selection-label__input, .n-base-selection-input')]
+            .map((node) => (node.value || node.textContent || '').trim())
+            .filter(Boolean)
+            .join('|')
+        pill.click()
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        console.log(`     [feedback] 点一次: 列表=${sub()} 状态=${statusText()}`)
+        pill.click()
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        console.log(`     [feedback] 再点一次: 列表=${sub()} 状态=${statusText()}`)
+      }
     }
     // 任意页面：点「自定义」按钮，确认日期区间面板能弹出（含两个日期选择器）
     {
