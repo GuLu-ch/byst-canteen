@@ -190,21 +190,6 @@ onMounted(async () => {
     </header>
 
     <div class="page">
-      <!-- 投票入口：和首页同款，评价完顺手投一票 -->
-      <button type="button" class="vote-entry" @click="router.push('/vote')">
-        <span class="ve-ico">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20.2S4.6 15.5 4.6 10.6A3.9 3.9 0 0 1 12 8.4a3.9 3.9 0 0 1 7.4 2.2c0 4.9-7.4 9.6-7.4 9.6Z" />
-            <path d="M9.4 11.6l1.9 1.9 3.6-3.6" />
-          </svg>
-        </span>
-        <span class="ve-body">
-          <b>本周最爱菜投票</b>
-          <span class="muted small">可多选 · {{ voterCount }} 人已投</span>
-        </span>
-        <span class="ve-chev"><AppIcon name="chevron-right" :size="16" /></span>
-      </button>
-
       <div class="card date-card">
         <button type="button" class="nav" :disabled="day <= minDay" @click="shiftDay(-1)">
           <AppIcon name="chevron-left" :size="16" />
@@ -341,6 +326,21 @@ onMounted(async () => {
         </p>
       </div>
 
+      <!-- 投票入口：和首页同款，评价完顺手投一票（放在「我的评价」上方） -->
+      <button type="button" class="vote-entry" @click="router.push('/vote')">
+        <span class="ve-ico">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20.2S4.6 15.5 4.6 10.6A3.9 3.9 0 0 1 12 8.4a3.9 3.9 0 0 1 7.4 2.2c0 4.9-7.4 9.6-7.4 9.6Z" />
+            <path d="M9.4 11.6l1.9 1.9 3.6-3.6" />
+          </svg>
+        </span>
+        <span class="ve-body">
+          <b>本周最爱菜投票</b>
+          <span class="muted small">可多选 · {{ voterCount }} 人已投</span>
+        </span>
+        <span class="ve-chev"><AppIcon name="chevron-right" :size="16" /></span>
+      </button>
+
       <section class="section">
         <div class="section-head">
           <h3>我的评价</h3>
@@ -457,7 +457,7 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   width: 100%;
-  margin-bottom: 12px;
+  margin: 4px 0 14px;
   padding: 12px 14px;
   border-radius: var(--radius);
   border: 1px solid #ffe3ea;
