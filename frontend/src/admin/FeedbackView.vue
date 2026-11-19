@@ -210,9 +210,12 @@ async function loadStats() {
   )
 }
 
-/** 看「待处理」时不限日期区间：否则早于本周的待处理反馈会被区间挡掉，导致小红点一直亮 */
-const showAllPending = computed(() => handled.value === 'false')
-
+/**
+ * 「全部待处理」是一个**显式**模式：只有点顶部胶囊 / 从导航小红点进来才开启。
+ * 其它情况下列表始终跟随上方选择的日期区间 —— 之前把「状态=待处理」也当成不限日期，
+ * 于是切了区间列表却不变，看着像日期过滤没生效。
+ */
+const pendingMode = ref(false)
 async function loadList() {
   loading.value = true
   try {
@@ -220,11 +223,14 @@ async function loadList() {
       page: page.value,
       page_size: pageSize.value,
       category: category.value,
-      handled: handled.value,
     }
-    if (!showAllPending.value) {
+    if (pendingMode.value) {
+      // 全部待处理：不限日期，确保历史遗留的待处理都能被找到并归档
+      params.handled = 'false'
+    } else {
       params.start = range.value.start
       params.end = range.value.end
+      if (handled.value) params.handled = handled.value
     }
     const data = await api.get('/feedback', params, 'admin')
     rows.value = data.items
@@ -239,7 +245,20 @@ async function loadList() {
 function onRangeChange({ key, start, end }) {
   rangeKey.value = key
   customRange.value = key === 'custom' ? { start, end } : null
+  // 切区间＝回到「按日期看」，退出全部待处理模式
+  if (pendingMode.value) {
+    pendingMode.value = false
+    handled.value = ''
+  }
   reload()
+}
+
+/** 状态筛选：选「待处理」也只看当前区间（想找全部历史待处理请点顶部胶囊） */
+function onStatusChange(value) {
+  handled.value = value
+  pendingMode.value = false
+  page.value = 1
+  loadList()
 }
 
 async function reload() {
@@ -257,10 +276,11 @@ async function markHandled(row) {
     // 处理完提示还剩多少待处理（含其他日期的），避免以为处理完了红点却还在
     const left = stats.value?.pending_all ?? 0
     if (left > 0) {
-      message.success(`${result?.message || '已标记为已处理'}，还剩 ${left} 条待处理（可点这里查看全部待处理）`)
+      message.success(`${result?.message || '已标记为已处理'}，还剩 ${left} 条待处理（点顶部「待处理」可看全部）`)
     } else {
       message.success('已全部处理完毕')
     }
+    if (pendingMode.value) loadList()
   } catch (error) {
     message.error(error.message)
   }
@@ -268,12 +288,21 @@ async function markHandled(row) {
 
 /** 一键查看全部待处理（不限日期区间） */
 function showPending() {
+  pendingMode.value = true
   handled.value = 'false'
   page.value = 1
   loadList()
 }
 
+function exitPending() {
+  pendingMode.value = false
+  handled.value = ''
+  page.value = 1
+  loadList()
+}
+
 function clearFilters() {
+  pendingMode.value = false
   category.value = ''
   handled.value = ''
   page.value = 1
@@ -288,7 +317,10 @@ function onPageChange(value) {
 
 onMounted(() => {
   // 支持从导航小红点直接进入「全部待处理」列表
-  if (route.query.handled === 'false') handled.value = 'false'
+  if (route.query.handled === 'false') {
+    pendingMode.value = true
+    handled.value = 'false'
+  }
   reload()
 })
 </script>
@@ -305,7 +337,7 @@ onMounted(() => {
           v-if="stats?.pending_all"
           type="button"
           class="pending-pill"
-          :class="{ active: handled === 'false' }"
+          :class="{ active: pendingMode }"
           @click="showPending"
         >
           待处理 {{ stats.pending_all }} 条
@@ -343,9 +375,7 @@ onMounted(() => {
         <div class="panel-head">
           <div class="panel-title">
             <i />反馈列表
-            <span class="panel-sub">
-              共 {{ total }} 条<template v-if="showAllPending">（待处理不限日期区间）</template>
-            </span>
+            <span class="panel-sub">共 {{ total }} 条</span>
           </div>
           <div class="toolbar">
             <n-select
@@ -356,16 +386,21 @@ onMounted(() => {
               @update:value="loadList"
             />
             <n-select
-              v-model:value="handled"
+              :value="handled"
               :options="handledOptions"
               size="small"
               style="width: 120px"
-              @update:value="loadList"
+              @update:value="onStatusChange"
             />
             <n-button size="small" quaternary @click="clearFilters">重置</n-button>
           </div>
         </div>
       </template>
+
+      <div v-if="pendingMode" class="pending-bar">
+        <span>正在显示<b>全部待处理</b>（不限日期，包含历史遗留）</span>
+        <button type="button" class="pending-exit" @click="exitPending">回到按日期查看</button>
+      </div>
 
       <n-skeleton v-if="loading" text :repeat="5" />
       <template v-else>
@@ -451,6 +486,39 @@ onMounted(() => {
   background: #c0392b;
   border-color: #c0392b;
   color: #fff;
+}
+
+/* 「全部待处理」提示条：明确告诉用户当前列表已经不看日期区间 */
+.pending-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff7f7;
+  border: 1px solid #f6dede;
+  font-size: 12.5px;
+  color: #9b4a45;
+}
+
+.pending-bar b {
+  color: #c0392b;
+}
+
+.pending-exit {
+  border: none;
+  background: transparent;
+  color: #c0392b;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-family: inherit;
+  padding: 0;
 }
 
 /* ── 手机端反馈卡片 ─────────────────────── */

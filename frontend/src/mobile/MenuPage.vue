@@ -242,26 +242,102 @@ function toggleMeal(meal) {
 
 function pickAll(value) {
   const next = { ...draft.value }
+  let changed = 0
+  let skipped = 0
   MEALS.forEach((meal) => {
     const key = keyOf(selected.value, meal)
-    if (value && !stateOf(selected.value, meal).open) return
+    const state = stateOf(selected.value, meal)
+    if (value && !state.open) {
+      skipped += 1
+      return
+    }
+    if (value && next[key]) return // 已经选过，不算变化
     next[key] = value
+    changed += 1
   })
   draft.value = next
+  if (value) {
+    if (!changed && !skipped) showToast('今天三餐都已经选好了')
+    else if (!changed && skipped) showToast('今天没有可预约的餐次')
+    else showToast(skipped ? `已全选 ${changed} 餐，${skipped} 餐不可预约已跳过` : `已全选今天 ${changed} 餐`)
+  } else {
+    if (!changed) showToast('今天还没有选任何餐次')
+    else showToast(`已清空今天的 ${changed} 餐`)
+  }
 }
 
-function copyFrom(sourceDate, label) {
+/**
+ * 「同上一日 / 同上一周」：以指定日期的**真实预约记录**为模板套用到当前选中日。
+ * 之前只读本地 draft，而 draft 只有当前这一周的数据，
+ * 跨周（如周一取上周同日）读不到 → 全部视为未预约，把目标日清空了。
+ * 这里改成按需向后端取那一天的预约，再逐餐套用。
+ */
+async function copyFrom(sourceDate, label) {
   if (!sourceDate) return
+  if (sourceDate === selected.value) {
+    showToast('源日期与当前日期相同')
+    return
+  }
+
+  const openMeals = MEALS.filter((meal) => stateOf(selected.value, meal).open)
+  if (!openMeals.length) {
+    showToast('当前日期没有可预约的餐次')
+    return
+  }
+
+  let source = {}
+  if (sourceDate >= weekDates.value[0] && sourceDate <= weekDates.value[6]) {
+    // 同一周：直接用已加载的数据
+    MEALS.forEach((meal) => {
+      source[meal] = !!draft.value[keyOf(sourceDate, meal)]
+    })
+  } else {
+    // 跨周：向后端要那一天的真实预约
+    try {
+      const data = await api.get('/reservations/mine', { start: sourceDate, end: sourceDate })
+      ;(data.items || []).forEach((item) => {
+        source[item.meal] = true
+      })
+    } catch (error) {
+      showToast(error.message || '读取上一份预约失败')
+      return
+    }
+  }
+
+  const picked = MEALS.filter((meal) => source[meal])
+  if (!picked.length) {
+    showToast(`${monthDay(sourceDate)} 没有预约记录，未做修改`)
+    return
+  }
+
   const next = { ...draft.value }
-  let copied = 0
+  let applied = 0
+  let skipped = 0
+  const sourceLabel = `${monthDay(sourceDate)} ${weekdayLabel(sourceDate)}`
   MEALS.forEach((meal) => {
-    const target = keyOf(selected.value, meal)
-    if (!stateOf(selected.value, meal).open) return
-    next[target] = !!draft.value[keyOf(sourceDate, meal)]
-    copied += 1
+    if (!source[meal]) return
+    const key = keyOf(selected.value, meal)
+    if (!stateOf(selected.value, meal).open) {
+      skipped += 1
+      return
+    }
+    if (!next[key]) applied += 1
+    next[key] = true
   })
   draft.value = next
-  showToast(`${label}的安排已套用（${copied} 餐）`)
+
+  if (!applied && skipped) {
+    showToast(`${sourceLabel}的 ${skipped} 餐在当前日期不可预约`)
+    return
+  }
+  if (!applied) {
+    showToast(`${sourceLabel}要套用的 ${picked.length} 餐，当前日期本来就已经选好了`)
+    return
+  }
+  const parts = [`${label}：已按 ${sourceLabel} 套用 ${applied} 餐`]
+  if (skipped) parts.push(`${skipped} 餐已截止跳过`)
+  parts.push('记得点下方「保存」')
+  showToast(parts.join('，'))
 }
 
 async function save() {
@@ -364,8 +440,8 @@ onMounted(() => load(false))
           <button type="button" class="ghost-btn" @click="copyFrom(addDays(selected, -1), '同上一日')">
             <AppIcon name="refresh" :size="14" /> 同上一日
           </button>
-          <button type="button" class="ghost-btn" @click="copyFrom(addDays(selected, -7), '同上一周')">
-            <AppIcon name="refresh" :size="14" /> 同上一周
+          <button type="button" class="ghost-btn" @click="copyFrom(addDays(selected, -7), '上周同日')">
+            <AppIcon name="refresh" :size="14" /> 上周同日
           </button>
         </div>
 

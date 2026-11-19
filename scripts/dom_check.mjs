@@ -35,7 +35,7 @@ const PAGES = [
   ['/admin/login', 'admin-login', null, ['管理后台', '账号', '密码', '进入后台'], 12000],
   ['/', 'mobile-home', '13800000012', ['明日三餐', '本周菜单', '本周最爱菜投票', '食堂意见反馈']],
   ['/vote', 'mobile-vote', '13800000012', ['本周最爱菜投票', '排行榜']],
-  ['/menu', 'mobile-menu', '13800000012', ['本日已选', '全选本日', '同上一周', '预约截止']],
+  ['/menu', 'mobile-menu', '13800000012', ['本日已选', '全选本日', '上周同日', '预约截止']],
   ['/review', 'mobile-review', '13800000012', ['菜品评价', '非常好', '午餐评价']],
   ['/feedback', 'mobile-feedback', '13800000012', ['意见反馈', '匿名']],
   ['/me', 'mobile-profile', '13800000012', ['我的口味档案', '我的预约', '意见反馈', '切换深色模式']],
@@ -314,6 +314,42 @@ async function checkPage([route, name, phone, expected, waitOverride]) {
             `     [detail] drawer=${dom.window.document.querySelectorAll('.n-drawer').length} cards=${dom.window.document.querySelectorAll('.detail-card').length}`,
           )
         }
+      }
+    }
+    // 用户端菜单页：当周往往已过预约截止，翻到下一周选周一，再点「上周同日」，
+    // 确认会去后端取上一周同一天的预约再套用
+    if (route === '/menu') {
+      const navs = [...dom.window.document.querySelectorAll('.week-top .nav-btn')]
+      if (navs[1]) {
+        navs[1].click()
+        await new Promise((resolve) => setTimeout(resolve, 900))
+        const days = [...dom.window.document.querySelectorAll('.days .day')]
+        if (days[0]) {
+          days[0].click()
+          await new Promise((resolve) => setTimeout(resolve, 600))
+        }
+      }
+      const copyBtn = [...dom.window.document.querySelectorAll('button')].find((node) =>
+        (node.textContent || '').includes('上周同日'),
+      )
+      if (copyBtn) {
+        copyBtn.click()
+        await new Promise((resolve) => setTimeout(resolve, 1400))
+        const toast = dom.window.document.querySelector('.van-toast__text')
+        console.log(`     [copy] toast="${(toast?.textContent || '').trim()}"`)
+      }
+    }
+    // 意见反馈：日期区间必须同时作用于「面板」和「底部列表」
+    if (route === '/admin/feedback') {
+      const sub = () => (dom.window.document.querySelector('.panel-sub')?.textContent || '').trim()
+      const before = sub()
+      const btn = [...dom.window.document.querySelectorAll('button')].find(
+        (node) => (node.textContent || '').trim() === '最近30天',
+      )
+      if (btn) {
+        btn.click()
+        await new Promise((resolve) => setTimeout(resolve, 1200))
+        console.log(`     [feedback] 本周="${before}" → 最近30天="${sub()}"`)
       }
     }
     // 任意页面：点「自定义」按钮，确认日期区间面板能弹出（含两个日期选择器）
