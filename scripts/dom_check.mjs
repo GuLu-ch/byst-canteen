@@ -339,18 +339,21 @@ async function checkPage([route, name, phone, expected, waitOverride]) {
         console.log(`     [copy] toast="${(toast?.textContent || '').trim()}"`)
       }
     }
-    // 意见反馈：日期区间必须同时作用于「面板」和「底部列表」
+    // 意见反馈：日期区间只影响上方面板，列表始终是全部日期（口径不同是有意的）
     if (route === '/admin/feedback') {
       const sub = () => (dom.window.document.querySelector('.panel-sub')?.textContent || '').trim()
-      const before = sub()
+      const panel = () => (dom.window.document.querySelector('.stat-value')?.textContent || '').trim()
+      const before = `${panel()} / ${sub()}`
       const btn = [...dom.window.document.querySelectorAll('button')].find(
         (node) => (node.textContent || '').trim() === '最近30天',
       )
       if (btn) {
         btn.click()
         await new Promise((resolve) => setTimeout(resolve, 1200))
-        console.log(`     [feedback] 本周="${before}" → 最近30天="${sub()}"`)
+        console.log(`     [feedback] 区间反馈 本周=${before} → 最近30天=${panel()} / ${sub()}`)
       }
+      const pill = dom.window.document.querySelector('.pending-pill')
+      console.log(`     [feedback] 待处理胶囊在列表标题里=${pill ? 1 : 0} 文案="${(pill?.textContent || '').trim()}"`)
     }
     // 任意页面：点「自定义」按钮，确认日期区间面板能弹出（含两个日期选择器）
     {

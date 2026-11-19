@@ -53,7 +53,8 @@ const statCards = computed(() => {
   if (!data) return []
   return [
     { label: '区间反馈', value: data.total, unit: '条', foot: rangeText.value },
-    { label: '待处理', value: data.pending, unit: '条', foot: '处理完记得标记' },
+    // 待处理按「全部日期」统计，和下方列表标题上的胶囊保持一致（区间内可能一条都没有）
+    { label: '待处理', value: data.pending_all ?? data.pending, unit: '条', foot: '全部日期，未处理' },
     { label: '已处理', value: data.handled, unit: '条' },
     { label: '本周新增', value: data.this_week, unit: '条' },
   ]
@@ -211,11 +212,11 @@ async function loadStats() {
 }
 
 /**
- * 「全部待处理」是一个**显式**模式：只有点顶部胶囊 / 从导航小红点进来才开启。
- * 其它情况下列表始终跟随上方选择的日期区间 —— 之前把「状态=待处理」也当成不限日期，
- * 于是切了区间列表却不变，看着像日期过滤没生效。
+ * 列表与上面的统计面板口径不同，这是有意为之：
+ * - 上方面板（指标卡 + 图表）跟随顶部日期区间；
+ * - 下方列表**始终覆盖全部日期**，只受「类型 / 状态」筛选影响，
+ *   这样历史遗留的待处理反馈永远能在列表里找到，不会被日期区间藏起来。
  */
-const pendingMode = ref(false)
 async function loadList() {
   loading.value = true
   try {
@@ -224,14 +225,7 @@ async function loadList() {
       page_size: pageSize.value,
       category: category.value,
     }
-    if (pendingMode.value) {
-      // 全部待处理：不限日期，确保历史遗留的待处理都能被找到并归档
-      params.handled = 'false'
-    } else {
-      params.start = range.value.start
-      params.end = range.value.end
-      if (handled.value) params.handled = handled.value
-    }
+    if (handled.value) params.handled = handled.value
     const data = await api.get('/feedback', params, 'admin')
     rows.value = data.items
     total.value = data.total
@@ -242,21 +236,22 @@ async function loadList() {
   }
 }
 
+/** 日期区间只刷新上方面板，不动列表 */
 function onRangeChange({ key, start, end }) {
   rangeKey.value = key
   customRange.value = key === 'custom' ? { start, end } : null
-  // 切区间＝回到「按日期看」，退出全部待处理模式
-  if (pendingMode.value) {
-    pendingMode.value = false
-    handled.value = ''
-  }
-  reload()
+  loadStats()
 }
 
-/** 状态筛选：选「待处理」也只看当前区间（想找全部历史待处理请点顶部胶囊） */
 function onStatusChange(value) {
   handled.value = value
-  pendingMode.value = false
+  page.value = 1
+  loadList()
+}
+
+/** 列表标题上的「待处理 N 条」：点一下只看待处理 */
+function filterPending() {
+  handled.value = handled.value === 'false' ? '' : 'false'
   page.value = 1
   loadList()
 }
@@ -273,36 +268,20 @@ async function markHandled(row) {
     row.handled = true
     notifyFeedbackHandled()
     await loadStats()
-    // 处理完提示还剩多少待处理（含其他日期的），避免以为处理完了红点却还在
     const left = stats.value?.pending_all ?? 0
     if (left > 0) {
-      message.success(`${result?.message || '已标记为已处理'}，还剩 ${left} 条待处理（点顶部「待处理」可看全部）`)
+      message.success(`${result?.message || '已标记为已处理'}，还剩 ${left} 条待处理`)
     } else {
       message.success('已全部处理完毕')
     }
-    if (pendingMode.value) loadList()
+    // 正在看「待处理」时，处理掉的行要从列表里移除
+    if (handled.value === 'false') loadList()
   } catch (error) {
     message.error(error.message)
   }
 }
 
-/** 一键查看全部待处理（不限日期区间） */
-function showPending() {
-  pendingMode.value = true
-  handled.value = 'false'
-  page.value = 1
-  loadList()
-}
-
-function exitPending() {
-  pendingMode.value = false
-  handled.value = ''
-  page.value = 1
-  loadList()
-}
-
 function clearFilters() {
-  pendingMode.value = false
   category.value = ''
   handled.value = ''
   page.value = 1
@@ -316,11 +295,8 @@ function onPageChange(value) {
 }
 
 onMounted(() => {
-  // 支持从导航小红点直接进入「全部待处理」列表
-  if (route.query.handled === 'false') {
-    pendingMode.value = true
-    handled.value = 'false'
-  }
+  // 支持从导航小红点直接带着「待处理」筛选进入
+  if (route.query.handled === 'false') handled.value = 'false'
   reload()
 })
 </script>
@@ -333,15 +309,6 @@ onMounted(() => {
         <p>员工匿名反馈，后台只看到内容与类型，看不到提交人（保护反馈真实度）</p>
       </div>
       <div class="page-actions">
-        <button
-          v-if="stats?.pending_all"
-          type="button"
-          class="pending-pill"
-          :class="{ active: pendingMode }"
-          @click="showPending"
-        >
-          待处理 {{ stats.pending_all }} 条
-        </button>
         <DateRangeSwitch v-model="rangeKey" @change="onRangeChange" />
       </div>
     </div>
@@ -375,7 +342,17 @@ onMounted(() => {
         <div class="panel-head">
           <div class="panel-title">
             <i />反馈列表
-            <span class="panel-sub">共 {{ total }} 条</span>
+            <span class="panel-sub">共 {{ total }} 条 · 全部日期</span>
+            <button
+              v-if="stats?.pending_all"
+              type="button"
+              class="pending-pill"
+              :class="{ active: handled === 'false' }"
+              :title="handled === 'false' ? '取消「只看待处理」' : '只看待处理'"
+              @click="filterPending"
+            >
+              待处理 {{ stats.pending_all }} 条
+            </button>
           </div>
           <div class="toolbar">
             <n-select
@@ -396,11 +373,6 @@ onMounted(() => {
           </div>
         </div>
       </template>
-
-      <div v-if="pendingMode" class="pending-bar">
-        <span>正在显示<b>全部待处理</b>（不限日期，包含历史遗留）</span>
-        <button type="button" class="pending-exit" @click="exitPending">回到按日期查看</button>
-      </div>
 
       <n-skeleton v-if="loading" text :repeat="5" />
       <template v-else>
@@ -465,17 +437,19 @@ onMounted(() => {
   gap: 16px;
 }
 
-/* 「待处理 N 条」快捷入口：不亮点时是浅色胶囊，点亮表示当前正在看待处理（不限日期） */
+/* 列表标题上的「待处理 N 条」：点一下只看待处理，再点取消 */
 .pending-pill {
+  margin-left: 8px;
   border: 1px solid #f3d6d6;
   background: #fff5f5;
   color: #c0392b;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
   cursor: pointer;
   transition: 0.15s;
+  vertical-align: 1px;
 }
 
 .pending-pill:hover {
@@ -486,39 +460,6 @@ onMounted(() => {
   background: #c0392b;
   border-color: #c0392b;
   color: #fff;
-}
-
-/* 「全部待处理」提示条：明确告诉用户当前列表已经不看日期区间 */
-.pending-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #fff7f7;
-  border: 1px solid #f6dede;
-  font-size: 12.5px;
-  color: #9b4a45;
-}
-
-.pending-bar b {
-  color: #c0392b;
-}
-
-.pending-exit {
-  border: none;
-  background: transparent;
-  color: #c0392b;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  font-family: inherit;
-  padding: 0;
 }
 
 /* ── 手机端反馈卡片 ─────────────────────── */
