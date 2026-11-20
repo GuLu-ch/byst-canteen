@@ -1,0 +1,7 @@
+# 开发 / 自测用依赖（生产环境不需要装）
+# 安装：pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# scripts/smoke_test.py 用它打接口做冒烟测试
+httpx>=0.27

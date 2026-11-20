@@ -1,7 +1,26 @@
-fastapi>=0.115
-uvicorn[standard]>=0.32
-python-multipart>=0.0.9
-SQLAlchemy>=2.0
-PyJWT>=2.9
-openpyxl>=3.1
-pydantic>=2.8
+# 博涯小食堂 · 后端运行依赖
+# 安装：pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+# 适用 Python 3.10 ~ 3.13（推荐 3.11；代码用了 `X | None` 这类 3.10+ 的类型写法）
+
+# Web 框架与 ASGI 服务器
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0        # 带 uvloop / httptools，性能更好；不带也能跑
+
+# 上传 Excel 时的 multipart 解析（/api/menus/import、员工批量导入都用到）
+python-multipart>=0.0.9,<0.1
+
+# ORM 与数据库驱动（SQLite 是标准库自带的 sqlite3，不需要额外驱动）
+SQLAlchemy>=2.0,<3.0
+
+# JWT 签发与校验（PyJWT，注意不是 jwt 那个包）
+PyJWT>=2.9,<3.0
+
+# 菜单模板 / 评价 / 预约的 Excel 导入导出
+openpyxl>=3.1,<4.0
+
+# 请求/响应的数据校验（fastapi 会带上，这里显式声明版本区间，避免被降到 1.x）
+pydantic>=2.8,<3.0
+
+# 可选：精简系统（如 alpine / 部分容器镜像）缺少 /usr/share/zoneinfo 时，
+# zoneinfo 用它兜底。宝塔这类完整 Linux 上系统已有 tzdata，装了也无副作用。
+tzdata>=2024.1
