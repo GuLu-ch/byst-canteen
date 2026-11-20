@@ -182,6 +182,8 @@ node scripts\dom_check.mjs
 ## 十、部署提示
 
 - 生产环境建议 `uvicorn` + `nginx` 反向代理并开启 HTTPS；`frontend/dist` 打的包由后端直接托管，无需单独部署前端。
+- **宝塔面板详细部署步骤见 [docs/宝塔部署文档.md](docs/宝塔部署文档.md)**（含前期准备、Python 项目配置、域名反代、SSL、备份、排错表、验收清单）。
+- 上线前清空演示数据：`python scripts/clear_demo.py --yes`（保留管理员/厨师账号与系统设置）。
 - 移动端已按 WAP 适配：`viewport` 禁缩放、`safe-area-inset` 底部留白、无横向滚动。
 - 若要接微信公众号，可在登录页增加微信网页授权入口，拿到手机号后复用现有 `/api/auth/login` 的 JWT 会话。
 
